@@ -18,6 +18,8 @@
 // TODO: Remove this when things stabilize.
 #![allow(dead_code)]
 
+use encoding::Quantifier::*;
+
 #[derive(Copy,Eq,PartialEq)]
 pub enum Type {
 	Int8  = 0,
@@ -102,4 +104,127 @@ pub struct CompleteEncoding {
 	// Encodings for all dependencies of target. If a field has a type (t >= Type::FirstUnused),
 	// then a RecordEncoding for that type is at depends[t - Type::FirstUnused].
 	pub depends: Vec<RecordEncoding>,
+}
+
+// These are indices into COMPLETE_ENC.depends, below. See docs for that field on the
+// CompleteEncoding type.
+const FIELD_ENCODING_TYP:  usize = 0 + (Type::FirstUnused as usize);
+const RECORD_ENCODING_TYP: usize = 1 + (Type::FirstUnused as usize);
+
+lazy_static! {
+
+	// I apologize in advance for the confusing-ness of this comment.
+	//
+	// Encodings for records are themselves encoded, so we need to solve the chicken/egg problem in
+	// order to be able to interpret the encodings of encodings :3.
+	//
+	// We do this by providing a pre-decoded encoding for encodings. That's what this lovely
+	// structure is.
+	pub static ref COMPLETE_ENC: CompleteEncoding = CompleteEncoding {
+		target: RecordEncoding {
+			name: "CompleteEncoding".to_string(),
+			req_fields: vec![
+
+				FieldEncoding {
+					id:     1,
+					name:   "target".to_string(),
+					quant:  Required,
+					typ:    RECORD_ENCODING_TYP,
+					bounds: None
+				},
+			],
+
+			opt_rep_fields: vec![
+
+				FieldEncoding {
+					id:     2,
+					quant:  Repeated,
+					name:   "depends".to_string(),
+					typ:    RECORD_ENCODING_TYP,
+					bounds: None
+				},
+			],
+		},
+
+		depends: vec![
+
+			RecordEncoding {
+				name: "FieldEncoding".to_string(),
+				req_fields: vec![
+
+					FieldEncoding {
+						id:     1,
+						name:   "id".to_string(),
+						quant:  Required,
+						typ:    Type::UInt64 as usize,
+						bounds: None
+					},
+
+					FieldEncoding {
+						id:     2,
+						name:   "name".to_string(),
+						quant:  Required,
+						typ:    Type::String as usize,
+						bounds: None
+					},
+
+					FieldEncoding {
+						id:     3,
+						name:   "quant".to_string(),
+						quant:  Required,
+						typ:    Type::Enum as usize,
+						bounds: None
+					},
+
+					FieldEncoding {
+						id:     4,
+						name:   "typ".to_string(),
+						quant:  Required,
+						typ:    Type::Enum as usize,
+						bounds: None
+					},
+
+					FieldEncoding {
+						id:     5,
+						name:   "bounds".to_string(),
+						quant:  Required,
+						typ:    Type::UInt64 as usize,
+						bounds: None
+					},
+				],
+				opt_rep_fields: vec![]
+			},
+
+			RecordEncoding {
+				name: "RecordEncoding".to_string(),
+				req_fields: vec![
+					FieldEncoding {
+						id:     1,
+						name:   "name".to_string(),
+						quant:  Required,
+						typ:    Type::String as usize,
+						bounds: None
+					},
+				],
+
+				opt_rep_fields: vec![
+					FieldEncoding {
+						id:     2,
+						name:   "req_fields".to_string(),
+						quant:  Repeated,
+						typ:    FIELD_ENCODING_TYP,
+						bounds: None
+					},
+
+					FieldEncoding {
+						id:     3,
+						name:   "opt_rep_fields".to_string(),
+						quant:  Repeated,
+						typ:    FIELD_ENCODING_TYP,
+						bounds: None
+					},
+				],
+			},
+		],
+	};
 }

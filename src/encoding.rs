@@ -94,6 +94,13 @@ pub struct RecordEncoding {
 	pub opt_rep_fields: Vec<FieldEncoding>,
 }
 
+impl RecordEncoding {
+	fn sort_fields(&mut self) {
+		self.req_fields.sort_by(|a, b| a.id.cmp(&b.id));
+		self.opt_rep_fields.sort_by(|a, b| a.id.cmp(&b.id));
+	}
+}
+
 // A CompleteEncoding provides all of the information necessary to parse a particular record type
 // (and every record type that it can contain).
 #[derive(PartialEq,Eq)]
@@ -104,6 +111,16 @@ pub struct CompleteEncoding {
 	// Encodings for all dependencies of target. If a field has a type (t >= Type::FirstUnused),
 	// then a RecordEncoding for that type is at depends[t - Type::FirstUnused].
 	pub depends: Vec<RecordEncoding>,
+}
+
+impl CompleteEncoding {
+	pub fn sort_fields(&mut self) {
+		self.target.sort_fields();
+
+		for dep in self.depends.iter_mut() {
+			dep.sort_fields();
+		}
+	}
 }
 
 // These are indices into COMPLETE_ENC.depends, below. See docs for that field on the

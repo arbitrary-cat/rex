@@ -1,0 +1,5 @@
+[package]
+
+name = "rex"
+version = "0.0.1"
+authors = ["Arbitrary Cat <scpayson+devel@gmail.com>"]

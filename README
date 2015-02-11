@@ -1,0 +1,7 @@
+Rex is a record format similar to protocol buffers. It is designed with the
+storage of game assets (such as 3D model geometry data) in mind.
+
+I'm just learning rust, so it's possible that this code is crummier than it
+could be.
+
+Rex is released under a permissive MIT license.

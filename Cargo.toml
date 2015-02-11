@@ -3,3 +3,7 @@
 name = "rex"
 version = "0.0.1"
 authors = ["Arbitrary Cat <scpayson+devel@gmail.com>"]
+
+[dependencies]
+
+lazy_static = "0.1.*"

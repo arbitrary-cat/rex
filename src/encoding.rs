@@ -48,6 +48,40 @@ pub enum Type {
 	FirstUnused = 16,
 }
 
+struct NoSuchType;
+
+impl Type {
+	pub fn from_usize(x: usize) -> Result<Type, NoSuchType> {
+		match x {
+			0 => Ok(Type::Int8),
+			1 => Ok(Type::Int16),
+			2 => Ok(Type::Int32),
+			3 => Ok(Type::Int64),
+
+			4 => Ok(Type::UInt8),
+			5 => Ok(Type::UInt16),
+			6 => Ok(Type::UInt32),
+			7 => Ok(Type::UInt64),
+
+			8 => Ok(Type::Fixed32),
+			9 => Ok(Type::Fixed64),
+
+			10 => Ok(Type::Float32),
+			11 => Ok(Type::Float64),
+
+			12 => Ok(Type::Bytes),
+			13 => Ok(Type::String),
+
+			14 => Ok(Type::Bool),
+
+			15 => Ok(Type::Enum),
+
+			_ => Err(NoSuchType),
+		}
+	}
+}
+
+
 // The Quantifier type gives the multiplicity of a field. A Required field has exactly 1 element, an
 // Optional field has 0 or 1 elements, and a Repeated field has 0 or more elements.
 #[derive(Debug,Copy,PartialEq,Eq)]

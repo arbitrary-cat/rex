@@ -51,25 +51,25 @@ struct Chunk {
 
 /// An `Encoder` is a struct that knows how to encode a particular record field. `Encoder`s should
 /// only be used where they are passed to the `encode_record` method of an `Encodable`.
-pub struct Encoder<'a> {
+pub struct Encoder<'x> {
     // `rec` is the encoding for the record type that this `Encoder` knows how to encode.
-    rec: &'a RecordEncoding,
+    rec: &'x RecordEncoding,
 
     // `deps` is a (full) slice of the `depends` field of the `CompleteEncoding` that `rec` is a
     // member of.
-    deps: &'a [RecordEncoding],
+    deps: &'x [RecordEncoding],
 
     // `data` is the buffer into which the encoded data *other than byte-size prefixes* will be
     // written. It is a staging area, since not all byte-size prefixes can be computed before the
     // encoding is done.
-    data: &'a mut Vec<u8>,
+    data: &'x mut Vec<u8>,
 
     // `chunks` is an unsorted list of byte-size prefixes along with the indices into `data` at
     // which they should be written.
-    chunks: &'a mut Vec<Chunk>,
+    chunks: &'x mut Vec<Chunk>,
 }
 
-impl<'a> Encoder<'a> {
+impl<'x> Encoder<'x> {
     /// The `encode` method should be called by implementations of the `encode_record` method of
     /// the `Encodable` trait. See that method's documentation for example usage.
     ///

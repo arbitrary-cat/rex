@@ -136,8 +136,8 @@ pub struct RecordEncoding {
 
 impl RecordEncoding {
     fn sort_fields(&mut self) {
-        self.req_fields.sort_by(|a, b| a.id.cmp(&b.id));
-        self.opt_rep_fields.sort_by(|a, b| a.id.cmp(&b.id));
+        self.req_fields.sort_by(|x, y| x.id.cmp(&y.id));
+        self.opt_rep_fields.sort_by(|x, y| x.id.cmp(&y.id));
     }
 }
 

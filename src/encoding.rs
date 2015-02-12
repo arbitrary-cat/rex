@@ -52,10 +52,10 @@ pub enum Type {
 }
 
 #[derive(Eq,PartialEq,Ord,PartialOrd,Copy)]
-pub struct FieldID(u64);
+pub struct FieldID(pub u64);
 
 impl Type {
-    pub fn from_usize(x: usize) -> Type {
+    pub fn from_u64(x: u64) -> Type {
         let first_unused = 16;
 
         match x {
@@ -82,7 +82,7 @@ impl Type {
 
             15 => Type::Enum,
 
-            xx => Type::Record{index: xx - first_unused},
+            xx => Type::Record{index: (xx - first_unused) as usize},
         }
     }
 }

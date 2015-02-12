@@ -22,61 +22,67 @@ use encoding::Quantifier::*;
 
 #[derive(Copy,Eq,PartialEq)]
 pub enum Type {
-	Int8  = 0,
-	Int16 = 1,
-	Int32 = 2,
-	Int64 = 3,
+	Int8,
+	Int16,
+	Int32,
+	Int64,
 
-	UInt8  = 4,
-	UInt16 = 5,
-	UInt32 = 6,
-	UInt64 = 7,
+	UInt8,
+	UInt16,
+	UInt32,
+	UInt64,
 	
-	Fixed32 = 8,
-	Fixed64 = 9,
+	Fixed32,
+	Fixed64,
 
-	Float32 = 10,
-	Float64 = 11,
+	Float32,
+	Float64,
 
-	Bytes  = 12,
-	String = 13,
+	Bytes,
+	String,
 
-	Bool = 14,
+	Bool,
 
-	Enum = 15,
+	Enum,
 
-	FirstUnused = 16,
+    // A `Record` is any type which is encoded as >= FirstUnused (as specified in encoding.rex).
+    // The `index` field gives an index into the `depends` field of the CompleteEncoding which
+    // provides encoding information for this type.
+    Record{index: usize},
 }
 
-struct NoSuchType;
+#[derive(Eq,PartialEq,Ord,PartialOrd,Copy)]
+pub struct FieldID(u64);
 
 impl Type {
-	pub fn from_usize(x: usize) -> Result<Type, NoSuchType> {
+	pub fn from_usize(x: usize) -> Type {
+        let first_unused = 16;
+
 		match x {
-			0 => Ok(Type::Int8),
-			1 => Ok(Type::Int16),
-			2 => Ok(Type::Int32),
-			3 => Ok(Type::Int64),
+			 0 => Type::Int8,
+			 1 => Type::Int16,
+			 2 => Type::Int32,
+			 3 => Type::Int64,
 
-			4 => Ok(Type::UInt8),
-			5 => Ok(Type::UInt16),
-			6 => Ok(Type::UInt32),
-			7 => Ok(Type::UInt64),
+			 4 => Type::UInt8,
+			 5 => Type::UInt16,
+			 6 => Type::UInt32,
+			 7 => Type::UInt64,
 
-			8 => Ok(Type::Fixed32),
-			9 => Ok(Type::Fixed64),
+			 8 => Type::Fixed32,
+			 9 => Type::Fixed64,
 
-			10 => Ok(Type::Float32),
-			11 => Ok(Type::Float64),
+			10 => Type::Float32,
+			11 => Type::Float64,
 
-			12 => Ok(Type::Bytes),
-			13 => Ok(Type::String),
+			12 => Type::Bytes,
+			13 => Type::String,
 
-			14 => Ok(Type::Bool),
+			14 => Type::Bool,
 
-			15 => Ok(Type::Enum),
+			15 => Type::Enum,
 
-			_ => Err(NoSuchType),
+            xx => Type::Record{index: xx - first_unused},
 		}
 	}
 }
@@ -94,7 +100,7 @@ pub enum Quantifier {
 #[derive(PartialEq,Eq)]
 pub struct FieldEncoding {
 	// Integer id of this field within its containing record.
-	pub id: u64,
+	pub id: FieldID,
 
 	// Name of this field in the .rex file, not used in the encoding.
 	pub name: String,
@@ -103,7 +109,7 @@ pub struct FieldEncoding {
 	pub quant: Quantifier,
 
 	// Type of this field.
-	pub typ: usize,
+	pub typ: Type,
 
     // The bounds field is the product of all bounds in an array field. So for example, the field
     //
@@ -159,8 +165,8 @@ impl CompleteEncoding {
 
 // These are indices into COMPLETE_ENC.depends, below. See docs for that field on the
 // CompleteEncoding type.
-const FIELD_ENCODING_TYP:  usize = 0 + (Type::FirstUnused as usize);
-const RECORD_ENCODING_TYP: usize = 1 + (Type::FirstUnused as usize);
+const FIELD_ENCODING_TYP:  Type = Type::Record{index: 0};
+const RECORD_ENCODING_TYP: Type = Type::Record{index: 1};
 
 lazy_static! {
 
@@ -177,7 +183,7 @@ lazy_static! {
 			req_fields: vec![
 
 				FieldEncoding {
-					id:     1,
+					id:     FieldID(1),
 					name:   "target".to_string(),
 					quant:  Required,
 					typ:    RECORD_ENCODING_TYP,
@@ -188,7 +194,7 @@ lazy_static! {
 			opt_rep_fields: vec![
 
 				FieldEncoding {
-					id:     2,
+					id:     FieldID(2),
 					quant:  Repeated,
 					name:   "depends".to_string(),
 					typ:    RECORD_ENCODING_TYP,
@@ -204,42 +210,42 @@ lazy_static! {
 				req_fields: vec![
 
 					FieldEncoding {
-						id:     1,
+						id:     FieldID(1),
 						name:   "id".to_string(),
 						quant:  Required,
-						typ:    Type::UInt64 as usize,
+						typ:    Type::UInt64,
 						bounds: None
 					},
 
 					FieldEncoding {
-						id:     2,
+						id:     FieldID(2),
 						name:   "name".to_string(),
 						quant:  Required,
-						typ:    Type::String as usize,
+						typ:    Type::String,
 						bounds: None
 					},
 
 					FieldEncoding {
-						id:     3,
+						id:     FieldID(3),
 						name:   "quant".to_string(),
 						quant:  Required,
-						typ:    Type::Enum as usize,
+						typ:    Type::Enum,
 						bounds: None
 					},
 
 					FieldEncoding {
-						id:     4,
+						id:     FieldID(4),
 						name:   "typ".to_string(),
 						quant:  Required,
-						typ:    Type::Enum as usize,
+						typ:    Type::Enum,
 						bounds: None
 					},
 
 					FieldEncoding {
-						id:     5,
+						id:     FieldID(5),
 						name:   "bounds".to_string(),
 						quant:  Required,
-						typ:    Type::UInt64 as usize,
+						typ:    Type::UInt64,
 						bounds: None
 					},
 				],
@@ -250,17 +256,17 @@ lazy_static! {
 				name: "RecordEncoding".to_string(),
 				req_fields: vec![
 					FieldEncoding {
-						id:     1,
+						id:     FieldID(1),
 						name:   "name".to_string(),
 						quant:  Required,
-						typ:    Type::String as usize,
+						typ:    Type::String,
 						bounds: None
 					},
 				],
 
 				opt_rep_fields: vec![
 					FieldEncoding {
-						id:     2,
+						id:     FieldID(2),
 						name:   "req_fields".to_string(),
 						quant:  Repeated,
 						typ:    FIELD_ENCODING_TYP,
@@ -268,7 +274,7 @@ lazy_static! {
 					},
 
 					FieldEncoding {
-						id:     3,
+						id:     FieldID(3),
 						name:   "opt_rep_fields".to_string(),
 						quant:  Repeated,
 						typ:    FIELD_ENCODING_TYP,

@@ -22,4 +22,7 @@
 extern crate lazy_static;
 
 mod encoding;
+mod encoder;
 mod primitive;
+
+pub use encoder::Encoder;

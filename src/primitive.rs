@@ -18,6 +18,11 @@
 use std::io;
 use std::mem;
 
+use encoding::Type;
+
+// Hopefully we can remove this annotation eventually. Not sure why it's yelling at us about this
+// of all things.
+#[allow(dead_code)]
 pub enum Primitive {
     UInt8(u8),
     UInt16(u16),
@@ -41,6 +46,39 @@ pub enum Primitive {
     String(String),
 
     Enum(i64),
+}
+
+impl Primitive {
+    pub fn has_type(&self, t: Type) -> bool {
+        use encoding::Type::*;
+
+        match (self, t) {
+            (&Primitive::UInt8(..),  UInt8)  => true,
+            (&Primitive::UInt16(..), UInt8)  => true,
+            (&Primitive::UInt32(..), UInt32) => true,
+            (&Primitive::UInt64(..), UInt64) => true,
+
+            (&Primitive::Int8(..),  Int8)  => true,
+            (&Primitive::Int16(..), Int8)  => true,
+            (&Primitive::Int32(..), Int32) => true,
+            (&Primitive::Int64(..), Int64) => true,
+
+            (&Primitive::Fixed32(..), Fixed32) => true,
+            (&Primitive::Fixed64(..), Fixed64) => true,
+
+            (&Primitive::Float32(..), Float32) => true,
+            (&Primitive::Float64(..), Float64) => true,
+
+            (&Primitive::Bool(..), Bool) => true,
+
+            (&Primitive::Bytes(..), Bytes)   => true,
+            (&Primitive::String(..), String) => true,
+
+            (&Primitive::Enum(..), Enum) => true,
+
+            _ => false,
+        }
+    }
 }
 
 pub fn uvarint_size(x: u64) -> usize {

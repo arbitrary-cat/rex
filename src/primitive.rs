@@ -65,13 +65,10 @@ pub fn write_uvarint<W>(w: &mut W, mut x: u64) -> io::Result<usize>
 
 pub fn write_varint<W>(w: &mut W, x: i64) -> io::Result<usize>
     where W: io::Write {
-    let ux: u64 = if x < 0 {
-        !((x as u64) << 1)
-    } else {
-        (x as u64) << 1
-    };
 
-    write_uvarint(w, ux)
+    let ux = (x as u64) << 1;
+
+    write_uvarint(w, if x < 0 { !ux } else { ux })
 }
 
 pub fn write_le_u8<W>(w: &mut W, x: u8) -> io::Result<usize>

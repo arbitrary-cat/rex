@@ -43,6 +43,36 @@ pub enum Primitive {
     Enum(i64),
 }
 
+pub fn uvarint_size(x: u64) -> usize {
+    if x < 0x80 {
+        1
+    } else if x < 0x80 << 7 {
+        2
+    } else if x < 0x80 << 14 {
+        3
+    } else if x < 0x80 << 21 {
+        4
+    } else if x < 0x80 << 28 {
+        5
+    } else if x < 0x80 << 35 {
+        6
+    } else if x < 0x80 << 42 {
+        7
+    } else if x < 0x80 << 49 {
+        8
+    } else if x < 0x80 << 56 {
+        9
+    } else {
+        10
+    }
+}
+
+pub fn varint_size(x: i64) -> usize {
+    let ux = (x as u64) << 1;
+
+    uvarint_size(if x < 0 { !ux } else { ux })
+}
+
 pub fn write_uvarint<W>(w: &mut W, mut x: u64) -> io::Result<usize>
     where W: io::Write {
 

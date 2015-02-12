@@ -15,9 +15,11 @@
 // DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+#![feature(io)]
 #![feature(core)]
 
 #[macro_use]
 extern crate lazy_static;
 
 mod encoding;
+mod primitive;

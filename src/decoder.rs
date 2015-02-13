@@ -39,7 +39,7 @@ impl FromError<io::Error> for Error {
 }
 
 /// `read_uvarint` reads a varint encoded `u64` from `r`.
-pub fn read_uvarint<R>(r: &mut R) -> Result<u64, Error>
+fn read_uvarint<R>(r: &mut R) -> Result<u64, Error>
     where R: io::Read {
 
     let itr = r.bytes()
@@ -51,7 +51,7 @@ pub fn read_uvarint<R>(r: &mut R) -> Result<u64, Error>
 }
 
 /// `read_varint` reads a zig-zag varint encoded `i64` from `r`.
-pub fn read_varint<R>(r: &mut R) -> Result<i64, Error>
+fn read_varint<R>(r: &mut R) -> Result<i64, Error>
     where R: io::Read {
 
     let ux = try!(read_uvarint(r));
@@ -66,7 +66,7 @@ pub fn read_varint<R>(r: &mut R) -> Result<i64, Error>
 }
 
 /// `read_u8` reads a single byte from `r`.
-pub fn read_u8<R>(r: &mut R) -> Result<u8, Error>
+fn read_u8<R>(r: &mut R) -> Result<u8, Error>
     where R: io::Read {
 
     r.bytes()
@@ -77,7 +77,7 @@ pub fn read_u8<R>(r: &mut R) -> Result<u8, Error>
 }
 
 /// `read_le_u16` reads 2 bytes as a little endian `u16` from 'r'
-pub fn read_le_u16<R>(r: &mut R) -> Result<u16, Error>
+fn read_le_u16<R>(r: &mut R) -> Result<u16, Error>
     where R: io::Read {
 
     let itr = r.bytes().take_or_err(2, Error::EOF);
@@ -86,7 +86,7 @@ pub fn read_le_u16<R>(r: &mut R) -> Result<u16, Error>
 }
 
 /// `read_le_u32` reads 4 bytes as a little endian `u32` from 'r'
-pub fn read_le_u32<R>(r: &mut R) -> Result<u32, Error>
+fn read_le_u32<R>(r: &mut R) -> Result<u32, Error>
     where R: io::Read {
 
     let itr = r.bytes().take_or_err(4, Error::EOF);
@@ -95,7 +95,7 @@ pub fn read_le_u32<R>(r: &mut R) -> Result<u32, Error>
 }
 
 /// `read_le_u64` reads 8 bytes as a little endian `u64` from 'r'
-pub fn read_le_u64<R>(r: &mut R) -> Result<u64, Error>
+fn read_le_u64<R>(r: &mut R) -> Result<u64, Error>
     where R: io::Read {
 
     let itr = r.bytes().take_or_err(8, Error::EOF);
@@ -104,28 +104,28 @@ pub fn read_le_u64<R>(r: &mut R) -> Result<u64, Error>
 }
 
 /// `read_i8` reads a single byte from `r`, as a 2's complement `i8`
-pub fn read_i8<R>(r: &mut R) -> Result<i8, Error>
+fn read_i8<R>(r: &mut R) -> Result<i8, Error>
     where R: io::Read {
 
     Ok(try!(read_u8(r)) as i8)
 }
 
 /// `read_le_i16` reads 2 bytes as a little endian 2's complement `i16` from `r`.
-pub fn read_le_i16<R>(r: &mut R) -> Result<i16, Error>
+fn read_le_i16<R>(r: &mut R) -> Result<i16, Error>
     where R: io::Read {
 
     Ok(try!(read_le_u16(r)) as i16)
 }
 
 /// `read_le_i32` reads 4 bytes as a little endian 2's complement `i32` from `r`.
-pub fn read_le_i32<R>(r: &mut R) -> Result<i32, Error>
+fn read_le_i32<R>(r: &mut R) -> Result<i32, Error>
     where R: io::Read {
 
     Ok(try!(read_le_u32(r)) as i32)
 }
 
 /// `read_le_i64` reads 8 bytes as a little endian 2's complement `i64` from `r`.
-pub fn read_le_i64<R>(r: &mut R) -> Result<i64, Error>
+fn read_le_i64<R>(r: &mut R) -> Result<i64, Error>
     where R: io::Read {
 
     Ok(try!(read_le_u64(r)) as i64)
@@ -133,7 +133,7 @@ pub fn read_le_i64<R>(r: &mut R) -> Result<i64, Error>
 
 
 /// `read_le_f32` reads 8 bytes as a little endian ieee-754 binary32 encoded `f32` from `r`.
-pub fn read_le_f32<R>(r: &mut R) -> Result<f32, Error>
+fn read_le_f32<R>(r: &mut R) -> Result<f32, Error>
     where R: io::Read {
 
     let u = try!(read_le_u32(r));
@@ -142,7 +142,7 @@ pub fn read_le_f32<R>(r: &mut R) -> Result<f32, Error>
 }
 
 /// `read_le_f64` reads 8 bytes as a little endian ieee-754 binary64 encoded `f64` from `r`.
-pub fn read_le_f64<R>(r: &mut R) -> Result<f64, Error>
+fn read_le_f64<R>(r: &mut R) -> Result<f64, Error>
     where R: io::Read {
 
     let u = try!(read_le_u64(r));

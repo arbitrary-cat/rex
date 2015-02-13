@@ -17,12 +17,21 @@
 
 #![feature(io)]
 #![feature(core)]
+#![deny(missing_docs)]
+
+//! `rex` is a record encoding format designed for use in games.
 
 #[macro_use]
 extern crate lazy_static;
 
-mod encoding;
-mod encoder;
-mod primitive;
+/// The `encoding` module defines the structures which are used to describe record encodings. The
+/// data structures described in this module drive `Encoder`s and `Decoder`s.
+pub mod encoding;
 
-pub use encoder::Encoder;
+/// The `encoder` module defines the `Encoder` and related types.
+pub mod encoder;
+
+/// The `primitive` module provides helper methods for working with primitive types in rex, and
+/// defines the `Primitive` type which provides rust representations for each of the primitive
+/// types.
+pub mod primitive;

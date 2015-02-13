@@ -23,10 +23,21 @@ use std::error::FromError;
 use encoding::{CompleteEncoding, RecordEncoding, FieldEncoding, Type, FieldID};
 use primitive::Primitive;
 
+/// `Error` is used to report errors that occur during the encoding process.
 pub enum Error {
+    /// `EncodingInvalid` indicates that there is an inconsistency in the `CompleteEncoding` being
+    /// used. A probable fix is to regenerate the encoding (or inspect the encoding compiler for
+    /// errors).
     EncodingInvalid,
-    NonRecordField,
+
+    /// `FieldTypeMismatch` indicates a disagreement between the `Encoder` and the `Encodable`
+    /// about what the type of a field is. This probably indicates one of two things:
+    ///
+    /// 1. The wrong `CompleteEncoding` is being used to decode this type.
+    /// 2. The `Encodable` implementation is not consistent with the record definition.
     FieldTypeMismatch,
+
+    /// `IoError` allows propogation of i/o errors which are unrelated to the encoding process.
     IoError(io::Error),
 }
 
@@ -36,9 +47,15 @@ impl FromError<io::Error> for Error {
     }
 }
 
+/// The `Encodable` trait allows an object to be encoded as a rex record.
 pub trait Encodable {
+    /// `get_primitive` should return the value of a single element of a field with primitive type.
     fn get_primitive(&self, id: FieldID, idx: usize) -> Result<Primitive, Error>;
-    fn encode_record<'a>(&self, e: Encoder<'a>, id: FieldID, idx: usize) -> Result<usize, Error>;
+
+    /// `encode_record` is a request to call `e.encode` on a record field.
+    fn encode_record<'x>(&self, e: Encoder<'x>, id: FieldID, idx: usize) -> Result<usize, Error>;
+
+    /// `count_field` should return the number of members of an optional or repeated field.
     fn count_field(&self, id: FieldID) -> Result<usize, Error>;
 }
 

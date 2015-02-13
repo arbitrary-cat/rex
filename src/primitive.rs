@@ -20,9 +20,9 @@ use std::mem;
 
 use encoding::Type;
 
-// Hopefully we can remove this annotation eventually. Not sure why it's yelling at us about this
-// of all things.
-#[allow(dead_code)]
+/// A `Primitive` represents the primitive data types which make up all records. This is the format
+/// used to communicate data between `Encodable`/`Decodable` types and an `Encoder`/`Decoder`.
+#[allow(missing_docs)]
 pub enum Primitive {
     UInt8(u8),
     UInt16(u16),
@@ -49,6 +49,7 @@ pub enum Primitive {
 }
 
 impl Primitive {
+    /// The `has_type` simply that the type of `self` is `t`.
     pub fn has_type(&self, t: Type) -> bool {
         use encoding::Type::*;
 
@@ -81,6 +82,7 @@ impl Primitive {
     }
 }
 
+/// `uvarint_size` returns the number of bytes required to encode `x` as a varint.
 pub fn uvarint_size(x: u64) -> usize {
     if x < 0x80 {
         1
@@ -105,12 +107,15 @@ pub fn uvarint_size(x: u64) -> usize {
     }
 }
 
+/// `varint_size` returns the number of bytes required to encode `x` as a zig-zag encoded signed
+/// varint.
 pub fn varint_size(x: i64) -> usize {
     let ux = (x as u64) << 1;
 
     uvarint_size(if x < 0 { !ux } else { ux })
 }
 
+/// `write_uvarint` writes 'x' to 'w' encoded as a varint.
 pub fn write_uvarint<W>(w: &mut W, mut x: u64) -> io::Result<usize>
     where W: io::Write {
 
@@ -131,6 +136,7 @@ pub fn write_uvarint<W>(w: &mut W, mut x: u64) -> io::Result<usize>
     Ok((idx + 1) as usize)
 }
 
+/// `write_varint` writes 'x' to 'w' as a zig-zag encoded signed varint.
 pub fn write_varint<W>(w: &mut W, x: i64) -> io::Result<usize>
     where W: io::Write {
 
@@ -139,6 +145,7 @@ pub fn write_varint<W>(w: &mut W, x: i64) -> io::Result<usize>
     write_uvarint(w, if x < 0 { !ux } else { ux })
 }
 
+/// `write_le_u8` writes `x` to `w` as a single byte.
 pub fn write_le_u8<W>(w: &mut W, x: u8) -> io::Result<usize>
     where W: io::Write {
 
@@ -147,6 +154,7 @@ pub fn write_le_u8<W>(w: &mut W, x: u8) -> io::Result<usize>
     Ok(1)
 }
 
+/// `write_le_u16` writes `x` to `w` as 2 bytes in little-endian byte order.
 pub fn write_le_u16<W>(w: &mut W, x: u16) -> io::Result<usize>
     where W: io::Write {
 
@@ -159,6 +167,7 @@ pub fn write_le_u16<W>(w: &mut W, x: u16) -> io::Result<usize>
     Ok(2)
 }
 
+/// `write_le_u32` writes `x` to `w` as 4 bytes in little-endian byte order.
 pub fn write_le_u32<W>(w: &mut W, x: u32) -> io::Result<usize>
     where W: io::Write {
 
@@ -173,6 +182,7 @@ pub fn write_le_u32<W>(w: &mut W, x: u32) -> io::Result<usize>
     Ok(4)
 }
 
+/// `write_le_u64` writes `x` to `w` as 8 bytes in little-endian byte order.
 pub fn write_le_u64<W>(w: &mut W, x: u64) -> io::Result<usize>
     where W: io::Write {
 
@@ -191,36 +201,44 @@ pub fn write_le_u64<W>(w: &mut W, x: u64) -> io::Result<usize>
     Ok(8)
 }
 
+/// `write_le_i8` writes `x` to `w` as a single, 2's complement encoded byte.
 pub fn write_le_i8<W>(w: &mut W, x: i8) -> io::Result<usize>
     where W: io::Write {
 
     write_le_u8(w, x as u8)
 }
 
+/// `write_le_i16` writes `x` to `w` as 2 bytes, 2's complement encoded in little-endian byte order.
 pub fn write_le_i16<W>(w: &mut W, x: i16) -> io::Result<usize>
     where W: io::Write {
 
     write_le_u16(w, x as u16)
 }
 
+/// `write_le_i32` writes `x` to `w` as 4 bytes, 2's complement encoded in little-endian byte order.
 pub fn write_le_i32<W>(w: &mut W, x: i32) -> io::Result<usize>
     where W: io::Write {
 
     write_le_u32(w, x as u32)
 }
 
+/// `write_le_i64` writes `x` to `w` as 8 bytes, 2's complement encoded in little-endian byte order.
 pub fn write_le_i64<W>(w: &mut W, x: i64) -> io::Result<usize>
     where W: io::Write {
 
     write_le_u64(w, x as u64)
 }
 
+/// `write_le_f32` writes `x` to `w` as 4 bytes, ieee-754 binary32 encoded in little-endian byte
+/// order.
 pub fn write_le_f32<W>(w: &mut W, x: f32) -> io::Result<usize>
     where W: io::Write {
 
     write_le_u32(w, unsafe { mem::transmute(x) })
 }
 
+/// `write_le_f64` writes `x` to `w` as 8 bytes, ieee-754 binary64 encoded in little-endian byte
+/// order.
 pub fn write_le_f64<W>(w: &mut W, x: f64) -> io::Result<usize>
     where W: io::Write {
 

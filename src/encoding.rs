@@ -21,6 +21,8 @@
 use encoding::Quantifier::*;
 
 #[derive(Copy,Eq,PartialEq)]
+#[allow(missing_docs)]
+/// A `Type` indicates the type of a record field.
 pub enum Type {
     Int8,
     Int16,
@@ -51,10 +53,12 @@ pub enum Type {
     Record{index: usize},
 }
 
+/// A `FieldID` represents the id of a record field.
 #[derive(Eq,PartialEq,Ord,PartialOrd,Copy)]
 pub struct FieldID(pub u64);
 
 impl Type {
+    /// `from_u64` converts a `u64` to a `Type`. It uses the mapping established in `encoding.rex`.
     pub fn from_u64(x: u64) -> Type {
         let first_unused = 16;
 
@@ -88,49 +92,56 @@ impl Type {
 }
 
 
-// The Quantifier type gives the multiplicity of a field. A Required field has exactly 1 element, an
-// Optional field has 0 or 1 elements, and a Repeated field has 0 or more elements.
+/// The Quantifier type gives the multiplicity of a field. A Required field has exactly 1 element, an
+/// Optional field has 0 or 1 elements, and a Repeated field has 0 or more elements.
 #[derive(Debug,Copy,PartialEq,Eq)]
+#[allow(missing_docs)]
 pub enum Quantifier {
     Required = 0,
     Optional = 1,
     Repeated = 2,
 }
 
+/// A `FieldEncoding` describes the encoding of a single field of a record. The `Type` field may be
+/// a reference to a `RecordEncoding` which can be resolved by consulting the `depends` field of
+/// the containing `CompleteEncoding`.
 #[derive(PartialEq,Eq)]
 pub struct FieldEncoding {
-    // Integer id of this field within its containing record.
+    /// Integer id of this field within its containing record.
     pub id: FieldID,
 
-    // Name of this field in the .rex file, not used in the encoding.
+    /// Name of this field in the .rex file, not used in the encoding.
     pub name: String,
 
-    // Is this field Required, Optional (opt), or Repeated (rep)?
+    /// Is this field Required, Optional (opt), or Repeated (rep)?
     pub quant: Quantifier,
 
-    // Type of this field.
+    /// Type of this field.
     pub typ: Type,
 
-    // The bounds field is the product of all bounds in an array field. So for example, the field
-    //
-    //     1 matrix : [3][3]float32
-    //
-    // would have a bounds field of 3*3 = 9.
-    //
-    // The bounds field is not present for non-array types.
+    /// The bounds field is the product of all bounds in an array field. So for example, the field
+    ///
+    ///     1 matrix : [3][3]float32
+    ///
+    /// would have a bounds field of 3*3 = 9.
+    ///
+    /// The bounds field is not present for non-array types.
     pub bounds: Option<usize>,
 }
 
 
+/// A `RecordEncoding` describes the encoding of a particular record type. It may contain
+/// references to other `RecordEncoding`s which can be resolved by consulting the `depends` field
+/// of the containing `CompleteEncoding`.
 #[derive(PartialEq,Eq)]
 pub struct RecordEncoding {
-    // Name of the record type in the .rex file, not used in the encoding.
+    /// Name of the record type in the .rex file, not used in the encoding.
     pub name: String,
 
-    // Required fields of this record type, sorted by id.
+    /// Required fields of this record type, sorted by id.
     pub req_fields: Vec<FieldEncoding>,
 
-    // Optional and repeated fields of this record type, sorted by id.
+    /// Optional and repeated fields of this record type, sorted by id.
     pub opt_rep_fields: Vec<FieldEncoding>,
 }
 
@@ -141,19 +152,21 @@ impl RecordEncoding {
     }
 }
 
-// A CompleteEncoding provides all of the information necessary to parse a particular record type
-// (and every record type that it can contain).
+/// A `CompleteEncoding` provides all of the information necessary to encode or decode a particular
+/// record type (and every record type that it can contain).
 #[derive(PartialEq,Eq)]
 pub struct CompleteEncoding {
-    // The record type that this CompleteEncoding describes.
+    /// The record type that this CompleteEncoding describes.
     pub target:  RecordEncoding,
 
-    // Encodings for all dependencies of target. If a field has a type (t >= Type::FirstUnused),
-    // then a RecordEncoding for that type is at depends[t - Type::FirstUnused].
+    /// Encodings for all dependencies of target. If a field has a type (t >= Type::FirstUnused),
+    /// then a RecordEncoding for that type is at depends[t - Type::FirstUnused].
     pub depends: Vec<RecordEncoding>,
 }
 
 impl CompleteEncoding {
+    /// The `req_fields` and `opt_rep_fields` fields of a `RecordEncoding` are expected to be
+    /// sorted. This method performs that sort on `target` and each member of `depends`.
     pub fn sort_fields(&mut self) {
         self.target.sort_fields();
 
@@ -162,6 +175,15 @@ impl CompleteEncoding {
         }
     }
 }
+
+pub use encoding::doc_workaround::COMPLETE_ENC;
+
+mod doc_workaround {
+
+#![allow(missing_docs)]
+
+use encoding::*;
+use encoding::Quantifier::*;
 
 // These are indices into COMPLETE_ENC.depends, below. See docs for that field on the
 // CompleteEncoding type.
@@ -284,4 +306,6 @@ lazy_static! {
             },
         ],
     };
+}
+
 }

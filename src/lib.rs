@@ -35,3 +35,6 @@ pub mod encoder;
 /// defines the `Primitive` type which provides rust representations for each of the primitive
 /// types.
 pub mod primitive;
+
+
+mod iter;

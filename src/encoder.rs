@@ -54,7 +54,7 @@ pub trait Encodable {
     fn get_primitive(&self, id: FieldID, idx: usize) -> Result<Primitive, Error>;
 
     /// `encode_record` is a request to call `e.encode` on a record field.
-    fn encode_record<'x>(&self, e: Encoder<'x>, id: FieldID, idx: usize) -> Result<usize, Error>;
+    fn encode_record(&self, e: Encoder, id: FieldID, idx: usize) -> Result<usize, Error>;
 
     /// `count_field` should return the number of members of an optional or repeated field.
     fn count_field(&self, id: FieldID) -> Result<usize, Error>;
@@ -93,7 +93,7 @@ impl<'x> Encoder<'x> {
     ///
     /// Arguments
     /// ---------
-    /// `rec_field` -- An `Encodable` which corresponds to a rex field with record type.
+    /// `e` -- An `Encodable` which corresponds to a rex field with record type.
     ///
     /// Return Value
     /// ------------
@@ -104,7 +104,7 @@ impl<'x> Encoder<'x> {
     ///
     /// In either case, the caller (an implementation of `Encodable`) should pass the return value
     /// directly through as the return value of `encode_record`.
-    pub fn encode<E>(&mut self, e: &mut E) -> Result<usize, Error>
+    pub fn encode<E>(&mut self, e: &E) -> Result<usize, Error>
         where E: Encodable {
 
         use encoding::Quantifier::*;
@@ -133,12 +133,16 @@ impl<'x> Encoder<'x> {
     }
 
     // Create an encoder with the same `data`/`chunks` fields, but which
-    fn child(&mut self, index: usize) -> Encoder {
-        Encoder {
-            rec:    &self.deps[index],
-            deps:   self.deps,
-            data:   self.data,
-            chunks: self.chunks,
+    fn child(&mut self, index: usize) -> Result<Encoder, Error> {
+        if index < self.deps.len() {
+            Ok( Encoder {
+                rec:    &self.deps[index],
+                deps:   self.deps,
+                data:   self.data,
+                chunks: self.chunks,
+            })
+        } else {
+            Err(Error::EncodingInvalid)
         }
     }
 
@@ -207,7 +211,7 @@ impl<'x> Encoder<'x> {
         where E: Encodable {
 
         if let Type::Record{index: child_index} = f.typ {
-            e.encode_record(self.child(child_index), f.id, index)
+            e.encode_record(try!(self.child(child_index)), f.id, index)
         } else {
             let prim = try!(e.get_primitive(f.id, index));
             if !prim.has_type(f.typ) {

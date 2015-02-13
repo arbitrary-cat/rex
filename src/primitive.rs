@@ -145,8 +145,8 @@ pub fn write_varint<W>(w: &mut W, x: i64) -> io::Result<usize>
     write_uvarint(w, if x < 0 { !ux } else { ux })
 }
 
-/// `write_le_u8` writes `x` to `w` as a single byte.
-pub fn write_le_u8<W>(w: &mut W, x: u8) -> io::Result<usize>
+/// `write_u8` writes `x` to `w` as a single byte.
+pub fn write_u8<W>(w: &mut W, x: u8) -> io::Result<usize>
     where W: io::Write {
 
     let buf = [x];
@@ -201,11 +201,11 @@ pub fn write_le_u64<W>(w: &mut W, x: u64) -> io::Result<usize>
     Ok(8)
 }
 
-/// `write_le_i8` writes `x` to `w` as a single, 2's complement encoded byte.
-pub fn write_le_i8<W>(w: &mut W, x: i8) -> io::Result<usize>
+/// `write_i8` writes `x` to `w` as a single, 2's complement encoded byte.
+pub fn write_i8<W>(w: &mut W, x: i8) -> io::Result<usize>
     where W: io::Write {
 
-    write_le_u8(w, x as u8)
+    write_u8(w, x as u8)
 }
 
 /// `write_le_i16` writes `x` to `w` as 2 bytes, 2's complement encoded in little-endian byte order.

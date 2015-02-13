@@ -17,8 +17,9 @@
 
 #![allow(dead_code)]
 
-use std::io;
 use std::error::FromError;
+use std::io;
+use std::mem;
 
 use encoding::{CompleteEncoding, RecordEncoding, FieldEncoding, Type, FieldID};
 use primitive::Primitive;
@@ -105,8 +106,6 @@ impl<'x> Encoder<'x> {
     /// directly through as the return value of `encode_record`.
     pub fn encode<E>(&mut self, e: &mut E) -> Result<usize, Error>
         where E: Encodable {
-
-        use primitive::write_uvarint;
 
         use encoding::Quantifier::*;
 
@@ -221,8 +220,6 @@ impl<'x> Encoder<'x> {
 
     fn encode_primitive(&mut self, prim: Primitive) -> Result<usize, Error> {
 
-        use primitive::*;
-
         Ok( match prim {
             Primitive::UInt8(x)  => try!(write_u8(self.data, x)),
             Primitive::UInt16(x) => try!(write_le_u16(self.data, x)),
@@ -258,4 +255,134 @@ impl<'x> Encoder<'x> {
             Primitive::Enum(x) => try!(write_varint(self.data, x)),
         })
     }
+}
+
+/// `write_uvarint` writes 'x' to 'w' encoded as a varint.
+fn write_uvarint<W>(w: &mut W, mut x: u64) -> io::Result<usize>
+    where W: io::Write {
+
+    // A 64-bit varint can be at most 10 bytes long.
+    let mut buf = [0u8; 10];
+    let mut idx = 0;
+
+    while x > 0x7F {
+        buf[idx] = 0x80 | (x & 0x7F) as u8;
+        x = x >> 7;
+        idx += 1;
+    }
+
+    buf[idx] = x as u8;
+
+    try!(w.write_all(&buf[idx..]));
+
+    Ok((idx + 1) as usize)
+}
+
+/// `write_varint` writes 'x' to 'w' as a zig-zag encoded signed varint.
+fn write_varint<W>(w: &mut W, x: i64) -> io::Result<usize>
+    where W: io::Write {
+
+    let ux = (x as u64) << 1;
+
+    write_uvarint(w, if x < 0 { !ux } else { ux })
+}
+
+/// `write_u8` writes `x` to `w` as a single byte.
+fn write_u8<W>(w: &mut W, x: u8) -> io::Result<usize>
+    where W: io::Write {
+
+    let buf = [x];
+    try!(w.write_all(&buf));
+    Ok(1)
+}
+
+/// `write_le_u16` writes `x` to `w` as 2 bytes in little-endian byte order.
+fn write_le_u16<W>(w: &mut W, x: u16) -> io::Result<usize>
+    where W: io::Write {
+
+    let buf = [
+        ((x >> 0) & 0xFF) as u8,
+        ((x >> 8) & 0xFF) as u8,
+    ];
+
+    try!(w.write_all(&buf));
+    Ok(2)
+}
+
+/// `write_le_u32` writes `x` to `w` as 4 bytes in little-endian byte order.
+fn write_le_u32<W>(w: &mut W, x: u32) -> io::Result<usize>
+    where W: io::Write {
+
+    let buf = [
+        ((x >>  0) & 0xFF) as u8,
+        ((x >>  8) & 0xFF) as u8,
+        ((x >> 16) & 0xFF) as u8,
+        ((x >> 24) & 0xFF) as u8,
+    ];
+
+    try!(w.write_all(&buf));
+    Ok(4)
+}
+
+/// `write_le_u64` writes `x` to `w` as 8 bytes in little-endian byte order.
+fn write_le_u64<W>(w: &mut W, x: u64) -> io::Result<usize>
+    where W: io::Write {
+
+    let buf = [
+        ((x >>  0) & 0xFF) as u8,
+        ((x >>  8) & 0xFF) as u8,
+        ((x >> 16) & 0xFF) as u8,
+        ((x >> 24) & 0xFF) as u8,
+        ((x >> 32) & 0xFF) as u8,
+        ((x >> 40) & 0xFF) as u8,
+        ((x >> 48) & 0xFF) as u8,
+        ((x >> 56) & 0xFF) as u8,
+    ];
+
+    try!(w.write_all(&buf));
+    Ok(8)
+}
+
+/// `write_i8` writes `x` to `w` as a single, 2's complement encoded byte.
+fn write_i8<W>(w: &mut W, x: i8) -> io::Result<usize>
+    where W: io::Write {
+
+    write_u8(w, x as u8)
+}
+
+/// `write_le_i16` writes `x` to `w` as 2 bytes, 2's complement encoded in little-endian byte order.
+fn write_le_i16<W>(w: &mut W, x: i16) -> io::Result<usize>
+    where W: io::Write {
+
+    write_le_u16(w, x as u16)
+}
+
+/// `write_le_i32` writes `x` to `w` as 4 bytes, 2's complement encoded in little-endian byte order.
+fn write_le_i32<W>(w: &mut W, x: i32) -> io::Result<usize>
+    where W: io::Write {
+
+    write_le_u32(w, x as u32)
+}
+
+/// `write_le_i64` writes `x` to `w` as 8 bytes, 2's complement encoded in little-endian byte order.
+fn write_le_i64<W>(w: &mut W, x: i64) -> io::Result<usize>
+    where W: io::Write {
+
+    write_le_u64(w, x as u64)
+}
+
+/// `write_le_f32` writes `x` to `w` as 4 bytes, ieee-754 binary32 encoded in little-endian byte
+/// order.
+fn write_le_f32<W>(w: &mut W, x: f32) -> io::Result<usize>
+    where W: io::Write {
+
+    write_le_u32(w, unsafe { mem::transmute(x) })
+}
+
+/// `write_le_f64` writes `x` to `w` as 8 bytes, ieee-754 binary64 encoded in little-endian byte
+/// order.
+fn write_le_f64<W>(w: &mut W, x: f64) -> io::Result<usize>
+    where W: io::Write {
+
+    write_le_u64(w, unsafe { mem::transmute(x) })
 }

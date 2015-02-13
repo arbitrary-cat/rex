@@ -224,12 +224,12 @@ impl<'x> Encoder<'x> {
         use primitive::*;
 
         Ok( match prim {
-            Primitive::UInt8(x)  => try!(write_le_u8(self.data, x)),
+            Primitive::UInt8(x)  => try!(write_u8(self.data, x)),
             Primitive::UInt16(x) => try!(write_le_u16(self.data, x)),
             Primitive::UInt32(x) => try!(write_uvarint(self.data, x as u64)),
             Primitive::UInt64(x) => try!(write_uvarint(self.data, x)),
 
-            Primitive::Int8(x)  => try!(write_le_i8(self.data, x)),
+            Primitive::Int8(x)  => try!(write_i8(self.data, x)),
             Primitive::Int16(x) => try!(write_le_i16(self.data, x)),
             Primitive::Int32(x) => try!(write_varint(self.data, x as i64)),
             Primitive::Int64(x) => try!(write_varint(self.data, x)),
@@ -240,7 +240,7 @@ impl<'x> Encoder<'x> {
             Primitive::Float32(x) => try!(write_le_f32(self.data, x)),
             Primitive::Float64(x) => try!(write_le_f64(self.data, x)),
 
-            Primitive::Bool(x) => try!(write_le_u8(self.data, if x { 0xFF } else { 0x00 })),
+            Primitive::Bool(x) => try!(write_u8(self.data, if x { 0xFF } else { 0x00 })),
 
             Primitive::Bytes(x) => {
                 try!(write_uvarint(self.data, x.len() as u64));

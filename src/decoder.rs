@@ -99,6 +99,13 @@ pub struct Decoder<'x, R: io::Read + 'x> {
     deps: &'x [RecordEncoding],
 }
 
+/// `decode_from` reads a record from `r` and decodes it into `d`, according to `enc`. In order for
+/// this function to succeed, `enc` and `d` must correspond to the same record type.
+///
+/// # Errors
+///
+/// In the event of an error, partial data may be consumed from `r`, possibly leaving half a record
+/// on the wire.
 pub fn decode_from<'x, R, D>(enc: &'x CompleteEncoding, r: &'x mut R, d: &'x mut D) -> Result<(), Error>
     where R: io::Read + 'x,
           D: Decodable {

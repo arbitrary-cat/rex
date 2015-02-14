@@ -87,6 +87,12 @@ pub struct Encoder<'x> {
     chunks: &'x mut Vec<Chunk>,
 }
 
+/// `encode_to` encodes `e` as a record according to `enc`, and then writes the result to `w`. In
+/// order for this function to succeed, `enc` and `e` must correspond to the same record type.
+///
+/// # Errors
+///
+/// If the error is not an `Error::IoError`, then no data was written to `w` before failure.
 pub fn encode_to<'x, W, E>(enc: &'x CompleteEncoding, w: &'x mut W, e: &'x E) -> Result<(), Error>
     where W: io::Write + 'x,
           E: Encodable {

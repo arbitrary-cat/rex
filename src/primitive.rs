@@ -106,6 +106,7 @@ pub fn uvarint_size(x: u64) -> usize {
 
 /// `varint_size` returns the number of bytes required to encode `x` as a zig-zag encoded signed
 /// varint.
+#[allow(dead_code)] // could be useful in the future
 pub fn varint_size(x: i64) -> usize {
     let ux = (x as u64) << 1;
 

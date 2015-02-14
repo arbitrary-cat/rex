@@ -29,15 +29,23 @@ extern crate lazy_static;
 pub mod encoding;
 
 /// The `encoder` module defines the `Encoder` and related types.
-pub mod encoder;
+mod encoder;
 
 /// The `decoder` module defines the `Decoder` and related types.
-pub mod decoder;
+mod decoder;
 
 /// The `primitive` module provides helper methods for working with primitive types in rex, and
 /// defines the `Primitive` type which provides rust representations for each of the primitive
 /// types.
-pub mod primitive;
+mod primitive;
 
 
 mod iter;
+
+pub use encoding::CompleteEncoding as Encoding;
+
+pub use encoder::Error as EncError;
+pub use encoder::{Encoder, Encodable, encode_to};
+
+pub use decoder::Error as DecError;
+pub use decoder::{Decoder, Decodable, decode_from};

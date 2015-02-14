@@ -99,6 +99,19 @@ pub struct Decoder<'x, R: io::Read + 'x> {
     deps: &'x [RecordEncoding],
 }
 
+pub fn decode_from<'x, R, D>(enc: &'x CompleteEncoding, r: &'x mut R, d: &'x mut D) -> Result<(), Error>
+    where R: io::Read + 'x,
+          D: Decodable {
+
+    let mut dec = Decoder {
+        r:    r,
+        rec:  &enc.target,
+        deps: &enc.depends[],
+    };
+
+    dec.decode(d)
+}
+
 impl<'x, R> Decoder<'x, R>
     where R: io::Read + 'x {
 

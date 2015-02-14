@@ -87,6 +87,53 @@ pub struct Encoder<'x> {
     chunks: &'x mut Vec<Chunk>,
 }
 
+pub fn encode_to<'x, W, E>(enc: &'x CompleteEncoding, w: &'x mut W, e: &'x E) -> Result<(), Error>
+    where W: io::Write + 'x,
+          E: Encodable {
+
+    let mut data   = vec![];
+    let mut chunks = vec![];
+
+    let mut enc = Encoder {
+        rec:    &enc.target,
+        deps:   &enc.depends[],
+        data:   &mut data,
+        chunks: &mut chunks,
+    };
+
+    try!(enc.encode(e));
+
+    // There is a special case where there are no chunks, in which we just write all of the data
+    // straight to w.
+    if enc.chunks.is_empty() {
+        try!(w.write_all(&enc.data[]));
+        return Ok(());
+    }
+
+    // Now we have all of the chunks filled out, but they're out of order. Time to fix that!
+    enc.chunks.sort_by(|x, y| x.offset.cmp(&y.offset));
+
+    // Write everything that comes before the first size prefix.
+    try!(w.write_all(&enc.data[..enc.chunks[0].offset]));
+
+    for win in enc.chunks.windows(2) {
+        match win {
+            [ref low, ref high] => {
+                try!(write_uvarint(w, low.size as u64));
+                try!(w.write_all(&enc.data[low.offset..high.offset]));
+            }
+            _ => unreachable!(),
+        }
+    }
+
+    let last = &enc.chunks[enc.chunks.len() - 1];
+
+    try!(write_uvarint(w, last.size as u64));
+    try!(w.write_all(&enc.data[last.offset..]));
+
+    Ok(())
+}
+
 impl<'x> Encoder<'x> {
     /// The `encode` method should be called by implementations of the `encode_record` method of
     /// the `Encodable` trait. See that method's documentation for example usage.
